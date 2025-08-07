@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SONAA ELMEDIA - CRM</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #D7003A;
+            --primary-dark: #B30030;
+            --secondary: #2A2A2A;
+            --secondary-light: #4A4A4A;
+            --bg-body: #F4F7FC;
+            --bg-card: #FFFFFF;
+            --bg-sidebar: #FFFFFF;
+            --text-main: #2A2A2A;
+            --text-muted: #6B7280;
+            --border-color: #E5E7EB;
+            --shadow-light: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+            --shadow-primary: 0 10px 25px -5px rgba(215, 0, 58, 0.3);
+        }
+        * { font-family: 'Cairo', sans-serif; box-sizing: border-box; }
+        body { background-color: var(--bg-body); color: var(--text-main); }
+        .text-primary { color: var(--primary); }
+        .bg-primary { background-color: var(--primary); }
+        .sidebar { background-color: var(--bg-sidebar); box-shadow: var(--shadow-md); transition: transform 0.3s ease-in-out; }
+        .nav-item { display: flex; align-items: center; padding: 12px 16px; border-radius: 10px; font-weight: 600; color: var(--text-muted); transition: all 0.2s ease; position: relative; right: 0; cursor:pointer; }
+        .nav-item:hover { background-color: rgba(215, 0, 58, 0.05); color: var(--primary); right: -4px; }
+        .nav-item.active { background: linear-gradient(90deg, var(--primary), var(--primary-dark)); color: white; box-shadow: var(--shadow-primary); }
+        .nav-item.active:hover { right: 0; }
+        .card { background-color: var(--bg-card); border-radius: 16px; box-shadow: var(--shadow-light); transition: all 0.3s ease; padding: 24px; }
+        .card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+        .btn { padding: 10px 20px; border-radius: 8px; font-weight: 700; transition: all 0.2s ease; }
+        .btn-primary { background-color: var(--primary); color: white; box-shadow: var(--shadow-primary); }
+        .btn-primary:hover { background-color: var(--primary-dark); transform: translateY(-2px); }
+        .form-input, .form-select, .form-textarea { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; transition: border-color 0.2s, box-shadow 0.2s; }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(215, 0, 58, 0.15); }
+        .modal { background-color: rgba(0,0,0,0.5); transition: opacity 0.3s ease; }
+        .modal-content { background-color: var(--bg-card); border-radius: 16px; padding: 32px; transition: transform 0.3s ease; transform: scale(0.95); }
+        .modal.show .modal-content { transform: scale(1); }
+        .hidden { display: none !important; }
+        .badge { display: inline-block; padding: 2px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; color: white; }
+        .nav-header { padding: 8px 16px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+        .fc-daygrid-day.fc-day-today { background-color: rgba(215, 0, 58, 0.05) !important; }
+        .timeline { display: flex; align-items: flex-start; overflow-x: auto; padding-bottom: 20px; }
+        .timeline-item { display: flex; flex-direction: column; align-items: center; min-width: 180px; position: relative; }
+        .timeline-item:not(:last-child)::after { content: ''; position: absolute; top: 20px; right: -50%; width: 100%; height: 2px; background-color: var(--border-color); z-index: 1; }
+        .timeline-item .timeline-dot { width: 40px; height: 40px; border-radius: 50%; background-color: var(--bg-card); border: 2px solid var(--border-color); z-index: 2; display:flex; align-items:center; justify-content:center; }
+        .timeline-item .timeline-content { margin-top: 10px; padding: 10px; background-color: var(--bg-card); border-radius: 8px; width: 100%; text-align: center; border-top: 3px solid var(--border-color); }
+        .timeline-item.completed .timeline-dot { border-color: #34D399; background-color: #34D399; color:white; }
+        .timeline-item.completed .timeline-content { border-top-color: #34D399; }
+        .timeline-item.completed:not(:last-child)::after { background-color: #34D399; }
+        .timeline-item.active .timeline-dot { border-color: var(--primary); background-color: var(--primary); color:white; animation: pulse 2s infinite; }
+        .timeline-item.active .timeline-content { border-top-color: var(--primary); }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(215, 0, 58, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(215, 0, 58, 0); } 100% { box-shadow: 0 0 0 0 rgba(215, 0, 58, 0); } }
+        .draggable-stage.dragging { opacity: 0.5; background: #f0f0f0; }
+        .status-draft { background-color: #A0A0A0; }
+        .status-sent { background-color: #3B82F6; }
+        .status-paid { background-color: #10B981; }
+        .status-overdue { background-color: #EF4444; }
+        .status-new { background-color: #3B82F6; }
+        .status-contacted { background-color: #F59E0B; }
+        .status-qualified { background-color: #10B981; }
+        .status-lost { background-color: #EF4444; }
+        .status-prospecting { background-color: #6366F1; }
+        .status-proposal { background-color: #F59E0B; }
+        .status-negotiation { background-color: #A855F7; }
+        .status-won { background-color: #10B981; }
+        .tab-button { padding: 8px 16px; font-weight: 600; color: var(--text-muted); border-bottom: 2px solid transparent; }
+        .tab-button.active { color: var(--primary); border-bottom-color: var(--primary); }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div id="auth-container" class="fixed inset-0 bg-gray-100 flex items-center justify-center z-50">
+        <div id="login-form" class="w-full max-w-md p-8 bg-white rounded-2xl shadow-lg">
+            <div class="flex items-center justify-center mb-6 text-secondary">
+                <i class="fas fa-layer-group text-4xl text-primary ml-3"></i>
+                <span class="text-3xl font-black">صناع الميديا</span>
+            </div>
+            <h2 class="text-2xl font-bold text-center text-gray-800 mb-1">مرحبًا بك</h2>
+            <p class="text-center text-gray-500 mb-6">قم بتسجيل الدخول للمتابعة</p>
+            <form id="login-form-element">
+                <div class="mb-4">
+                    <label for="email" class="block text-sm font-bold text-gray-700 mb-2">البريد الإلكتروني</label>
+                    <input type="email" id="login-email" class="form-input" required>
+                </div>
+                <div class="mb-6">
+                    <label for="password" class="block text-sm font-bold text-gray-700 mb-2">كلمة المرور</label>
+                    <input type="password" id="login-password" class="form-input" required>
+                </div>
+                <button type="submit" class="w-full btn btn-primary">تسجيل الدخول</button>
+            </form>
+            <p id="login-error" class="text-red-500 text-center mt-4 hidden">خطأ في البيانات المدخلة.</p>
+        </div>
+    </div>
+
+    <div id="app-container" class="hidden">
+        <div class="flex">
+            <aside class="sidebar w-64 min-h-screen p-4 sticky top-0">
+                <div class="flex items-center justify-center mb-8">
+                    <i class="fas fa-layer-group text-3xl text-primary ml-2"></i>
+                    <h1 class="text-xl font-black text-secondary">صناع الميديا</h1>
+                </div>
+                <nav id="sidebar-nav" class="space-y-1"></nav>
+                <div class="absolute bottom-4 left-4 right-4">
+                    <div id="user-profile-widget" class="flex items-center p-2 bg-gray-100 rounded-lg">
+                        <img id="sidebar-avatar-img" class="w-10 h-10 rounded-full object-cover hidden">
+                        <div id="sidebar-avatar-initials" class="w-10 h-10 rounded-full flex items-center justify-center bg-primary text-white font-bold text-lg"></div>
+                        <div class="mr-3">
+                            <p id="sidebar-username" class="font-bold text-sm"></p>
+                            <p id="sidebar-user-role-name" class="text-xs text-gray-500"></p>
+                        </div>
+                        <button id="logout-btn" class="text-gray-500 hover:text-primary mr-auto"><i class="fas fa-sign-out-alt"></i></button>
+                    </div>
+                </div>
+            </aside>
+            <main class="flex-1 p-8">
+                <div id="main-header" class="flex justify-between items-center mb-6">
+                    <h2 id="section-title" class="text-3xl font-bold text-secondary"></h2>
+                    <div id="section-actions"></div>
+                </div>
+                <div id="main-content"></div>
+            </main>
+        </div>
+    </div>
+    
+    <div id="project-modal" class="modal fixed inset-0 items-center justify-center hidden z-40">
+        <div class="modal-content w-full max-w-4xl max-h-screen overflow-y-auto">
+            <h3 id="project-modal-title" class="text-xl font-bold mb-4"></h3>
+            <form id="project-form" class="space-y-4"></form>
+        </div>
+    </div>
+
+    <div id="invoice-modal" class="modal fixed inset-0 items-center justify-center hidden z-40">
+        <div class="modal-content w-full max-w-2xl">
+            <h3 class="text-xl font-bold mb-4">فاتورة جديدة</h3>
+            <form id="invoice-form" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-sm font-bold">المشروع</label><select id="invoice-project" class="form-select" required></select></div>
+                    <div><label class="block text-sm font-bold">المبلغ</label><input type="number" id="invoice-amount" class="form-input" required></div>
+                    <div><label class="block text-sm font-bold">تاريخ الإصدار</label><input type="date" id="invoice-issue-date" class="form-input" required></div>
+                    <div><label class="block text-sm font-bold">تاريخ الاستحقاق</label><input type="date" id="invoice-due-date" class="form-input" required></div>
+                </div>
+                <div class="flex justify-end pt-4">
+                    <button type="button" class="btn ml-2" onclick="app.closeModal('invoice-modal')">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="lead-modal" class="modal fixed inset-0 items-center justify-center hidden z-40">
+        <div class="modal-content w-full max-w-lg">
+            <h3 class="text-xl font-bold mb-4">عميل محتمل جديد</h3>
+            <form id="lead-form" class="space-y-4">
+                <div><label class="block text-sm font-bold">الاسم</label><input type="text" id="lead-name" class="form-input" required></div>
+                <div><label class="block text-sm font-bold">المصدر</label><input type="text" id="lead-source" class="form-input" required></div>
+                <div><label class="block text-sm font-bold">ملاحظات</label><textarea id="lead-notes" class="form-textarea"></textarea></div>
+                <div class="flex justify-end pt-4">
+                    <button type="button" class="btn ml-2" onclick="app.closeModal('lead-modal')">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="opportunity-modal" class="modal fixed inset-0 items-center justify-center hidden z-40">
+        <div class="modal-content w-full max-w-lg">
+            <h3 class="text-xl font-bold mb-4">فرصة جديدة</h3>
+            <form id="opportunity-form" class="space-y-4">
+                <div><label class="block text-sm font-bold">اسم الفرصة</label><input type="text" id="opportunity-name" class="form-input" required></div>
+                <div><label class="block text-sm font-bold">العميل</label><select id="opportunity-client" class="form-select" required></select></div>
+                <div><label class="block text-sm font-bold">القيمة المتوقعة</label><input type="number" id="opportunity-value" class="form-input" required></div>
+                <div class="flex justify-end pt-4">
+                    <button type="button" class="btn ml-2" onclick="app.closeModal('opportunity-modal')">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="submit-task-modal" class="modal fixed inset-0 items-center justify-center hidden z-40">
+        <div class="modal-content w-full max-w-lg">
+            <h3 class="text-xl font-bold mb-4">رفع المهمة</h3>
+            <form id="submit-task-form" class="space-y-4">
+                <input type="hidden" id="submission-project-id">
+                <div><label class="block text-sm font-bold text-gray-700 mb-2">التعليق</label><textarea id="submission-comment" class="form-textarea" rows="3"></textarea></div>
+                <div><label class="block text-sm font-bold text-gray-700 mb-2">الملف المرفق</label><input type="file" id="submission-file" class="form-input"></div>
+                <div class="flex justify-end pt-4">
+                    <button type="button" class="btn ml-2" onclick="app.closeModal('submit-task-modal')">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">رفع</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="user-profile-modal" class="modal fixed inset-0 items-center justify-center hidden z-40">
+        <div id="user-profile-modal-content" class="modal-content w-full max-w-2xl"></div>
+    </div>
+
+    <div id="add-client-modal" class="modal fixed inset-0 items-center justify-center hidden z-40">
+        <div class="modal-content w-full max-w-md">
+            <h3 class="text-xl font-bold mb-4">عميل جديد</h3>
+            <form id="add-client-form" class="space-y-4">
+                <div><label class="block text-sm font-bold text-gray-700 mb-2">اسم العميل</label><input type="text" id="client-name" class="form-input" required></div>
+                <div><label class="block text-sm font-bold text-gray-700 mb-2">معلومات التواصل</label><input type="text" id="client-contact" class="form-input"></div>
+                <div class="flex justify-end pt-4">
+                    <button type="button" class="btn ml-2" onclick="app.closeModal('add-client-modal')">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">إضافة</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="add-user-modal" class="modal fixed inset-0 items-center justify-center hidden z-40">
+        <div class="modal-content w-full max-w-md">
+            <h3 class="text-xl font-bold mb-4">مستخدم جديد</h3>
+            <form id="add-user-form" class="space-y-4">
+                <div><label class="block text-sm font-bold text-gray-700 mb-2">الاسم الكامل</label><input type="text" id="user-name" class="form-input" required></div>
+                <div><label class="block text-sm font-bold text-gray-700 mb-2">البريد الإلكتروني</label><input type="email" id="user-email" class="form-input" required></div>
+                <div><label class="block text-sm font-bold text-gray-700 mb-2">كلمة المرور</label><input type="password" id="user-password" class="form-input" required></div>
+                <div><label class="block text-sm font-bold text-gray-700 mb-2">الدور الوظيفي</label><select id="user-role" class="form-select" required></select></div>
+                <div class="flex justify-end pt-4">
+                    <button type="button" class="btn ml-2" onclick="app.closeModal('add-user-modal')">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">إضافة</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="add-role-modal" class="modal fixed inset-0 items-center justify-center hidden z-40">
+        <div class="modal-content w-full max-w-lg">
+            <h3 id="role-modal-title" class="text-xl font-bold mb-4"></h3>
+            <form id="add-role-form" class="space-y-4">
+                <input type="hidden" id="role-id">
+                <div><label class="block text-sm font-bold text-gray-700 mb-2">اسم الدور</label><input type="text" id="role-name" class="form-input" required></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <label class="flex items-center"><input type="checkbox" id="perm-canSeeAllProjects" class="ml-2">عرض جميع المشاريع</label>
+                    <label class="flex items-center"><input type="checkbox" id="perm-canAddProject" class="ml-2">إضافة مشروع</label>
+                    <label class="flex items-center"><input type="checkbox" id="perm-canAddClient" class="ml-2">إضافة عميل</label>
+                    <label class="flex items-center"><input type="checkbox" id="perm-canApproveStages" class="ml-2">اعتماد المراحل</label>
+                    <label class="flex items-center"><input type="checkbox" id="perm-canManageTeam" class="ml-2">إدارة الفريق</label>
+                    <label class="flex items-center"><input type="checkbox" id="perm-canSeeReports" class="ml-2">عرض التقارير</label>
+                    <label class="flex items-center"><input type="checkbox" id="perm-canManageSales" class="ml-2">إدارة المبيعات</label>
+                </div>
+                <div class="flex justify-end pt-4">
+                    <button type="button" class="btn ml-2" onclick="app.closeModal('add-role-modal')">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/ar.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/modals.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
